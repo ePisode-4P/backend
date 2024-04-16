@@ -1,7 +1,11 @@
 package com.pppp.recording.service;
 
 import com.pppp.recording.dto.AuthDTO;
+import com.pppp.recording.model.CategoryEntity;
+import com.pppp.recording.model.FavoriteEntity;
 import com.pppp.recording.model.UserEntity;
+import com.pppp.recording.repository.CategoryRepository;
+import com.pppp.recording.repository.FavoriteRepository;
 import com.pppp.recording.repository.UserRepository;
 import lombok.*;
 import org.springframework.stereotype.Service;
@@ -15,6 +19,8 @@ import java.util.Optional;
 @ToString
 public class AuthService {
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+    private final FavoriteRepository favoriteRepository;
 
     public boolean checkEmailDuplicate(String email) {
         return userRepository.existsByEmail(email);
@@ -22,6 +28,11 @@ public class AuthService {
     public void save(UserEntity userEntity) {
         System.out.println(userEntity);
         userRepository.save(userEntity);
+    }
+
+    public Optional<UserEntity> findByUserId (String email) {
+        System.out.println(email);
+        return userRepository.findByEmail(email);
     }
 
     public UserEntity login(AuthDTO authDTO) {
@@ -46,5 +57,15 @@ public class AuthService {
             // 조회 결과가 없다. (해당 이메일을 가진 회원이 없다.)
             return null;
         }
+    }
+
+    public CategoryEntity findByName(String name) {
+        return categoryRepository.findByCategoryName(name);
+    }
+
+    public void saveFavorite(UserEntity savedUser, CategoryEntity category) {
+        System.out.println(savedUser.getUserId());
+        FavoriteEntity favoriteEntity = new FavoriteEntity(savedUser, category);
+        favoriteRepository.save(favoriteEntity);
     }
 }

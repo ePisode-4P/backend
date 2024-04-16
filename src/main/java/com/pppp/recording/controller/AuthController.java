@@ -3,6 +3,8 @@ package com.pppp.recording.controller;
 import com.pppp.recording.auth.TokenProvider;
 import com.pppp.recording.dto.AuthDTO;
 import com.pppp.recording.dto.AuthSignUpDTO;
+import com.pppp.recording.model.CategoryEntity;
+import com.pppp.recording.model.FavoriteEntity;
 import com.pppp.recording.model.UserEntity;
 import com.pppp.recording.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @CrossOrigin(origins = "*")
 @Slf4j
@@ -31,7 +35,7 @@ public class AuthController {
             final String accessToken = tokenProvider.createAccessToken(user);
             final String refreshToken = tokenProvider.createRefreshToken(user);
 
-            return ResponseEntity.ok().header("access-token", accessToken).header("refresh-token", refreshToken).build();
+            return ResponseEntity.ok().header("access-token", accessToken).header("refresh-token", refreshToken).body(authDTO);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -42,14 +46,25 @@ public class AuthController {
         System.out.println("401 test");
     }
 
-    //TODO: 중복 로직 추가 반환 타입을 바꿀 가능성 있음 리턴통일
     // 회원가입
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody AuthSignUpDTO authSignUpDTO) {
         if (!authService.checkEmailDuplicate(authSignUpDTO.getEmail())) {
             authService.save(authSignUpDTO.toUserEntity());
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            Optional<UserEntity> savedUser = authService.findByUserId(authSignUpDTO.getEmail());
+            for(String favorite:authSignUpDTO.getFavorite()) {
+                CategoryEntity category = authService.findByName(favorite);
+
+                savedUser.ifPresent(user -> authService.saveFavorite(user, category));
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
         }
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
+
+//    @GetMapping("/token")
+//    public ResponseEntity<?> validToken() {
+//        authService
+//    }
+
 }

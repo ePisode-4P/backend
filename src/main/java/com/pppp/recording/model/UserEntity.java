@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "User")
+@Table(name = "Users")
 public class UserEntity {
 
     @Id
@@ -19,17 +21,14 @@ public class UserEntity {
     @Column(nullable = false)
     private String username;
 
-    @Column(nullable = false)
-    private String password;
-
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column
-    private String profilePhoto;
+    @Column(nullable = false)
+    private String password;
 
     @Column
-    private Long age;
+    private String profilePhoto;
 
     @Column
     private String mbti;
