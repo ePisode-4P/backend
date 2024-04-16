@@ -5,9 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.pppp.recording.model.UserEntity;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -38,21 +36,55 @@ public class TokenProvider {
                 .compact();
     }
 
+    public boolean validateToken(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
+            return !claims.getBody().getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            // 토큰이 만료된 경우
+            log.debug("Token expired: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            // 다른 예외 발생 시
+            log.error("Failed to validate token: {}", e.getMessage());
+            return false;
+        }
+    }
+
     public String validateRefreshToken(String refreshToken, UserEntity user) {
         try {
             Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(refreshToken).getBody();
             String userId = claims.getSubject();
 
+            // 리프레시 토큰의 만료 시간 확인
+            if (claims.getExpiration().before(new Date())) {
+                log.debug("Refresh token expired");
+                return null;
+            }
+
             // 새로운 액세스 토큰 생성
             return createAccessToken(user);
+        } catch (ExpiredJwtException e) {
+            // 리프레시 토큰이 만료된 경우
+            log.debug("Refresh token expired: {}", e.getMessage());
+            return null;
         } catch (Exception e) {
-            // 리프레시 토큰이 유효하지 않은 경우에 대한 예외 처리
+            // 다른 예외 발생 시
+            log.error("Failed to validate refresh token: {}", e.getMessage());
             return null;
         }
     }
 
-    public String vaildateAndGetUserId(String token) {
+    public Long vaildateAndGetUserId(String token) {
         Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
-        return claims.getSubject();
+        String userIdString = claims.getSubject();
+        return Long.parseLong(userIdString);
+    }
+
+    public void expireToken(String token) {
+        // 만료시간을 현재 시간으로 설정하여 토큰을 만료시킴
+        Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        Date now = new Date();
+        claims.setExpiration(now);
     }
 }

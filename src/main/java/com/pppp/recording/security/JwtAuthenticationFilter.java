@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.thymeleaf.util.StringUtils;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 @Slf4j
@@ -28,13 +29,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             String token = parseBearerToken(request);
             log.info("Filter is running...");
             if(token != null && !token.equalsIgnoreCase("null")) {
-                String userId = tokenProvider.vaildateAndGetUserId(token);
-                log.info("Authenticated user ID : " + userId);
+                Long userId = tokenProvider.vaildateAndGetUserId(token);
+                log.info("Authenticated user ID : {}", userId);
                 AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, AuthorityUtils.NO_AUTHORITIES);
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
