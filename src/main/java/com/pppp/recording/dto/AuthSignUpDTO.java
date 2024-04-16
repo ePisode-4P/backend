@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.List;
+
 //@Getter
 //@Setter
 //@NoArgsConstructor
@@ -25,7 +27,7 @@ public class AuthSignUpDTO {
     @NotBlank(message = "이메일 주소를 입력해주세요.")
     @Email(message = "올바른 이메일 주소를 입력해주세요.")
     private String email;
-    private String favorite;
+    private List<String> favorite;
     private String address;
     private String mbti;
 
