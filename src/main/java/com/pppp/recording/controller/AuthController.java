@@ -6,9 +6,11 @@ import com.pppp.recording.dto.AuthSignUpDTO;
 import com.pppp.recording.model.CategoryEntity;
 import com.pppp.recording.model.FavoriteEntity;
 import com.pppp.recording.model.UserEntity;
+import com.pppp.recording.security.TokenBlacklist;
 import com.pppp.recording.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.antlr.v4.runtime.Token;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,17 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/token")
+    public ResponseEntity<String> validateToken(@RequestHeader("Authorization") String token) {
+        String authToken = token.substring(7);
+        System.out.println(authToken);
+        if (!TokenBlacklist.isBlacklisted(authToken) && tokenProvider.validateToken(authToken)) {
+            return ResponseEntity.ok("Token is valid");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is invalid");
+        }
+    }
+
     @GetMapping("/test")
     public void test() {
         System.out.println("401 test");
@@ -60,6 +73,19 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
         }
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        try {
+            String authToken = token.substring(7);
+            TokenBlacklist.addToBlacklist(authToken);
+            tokenProvider.expireToken(authToken);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
     }
 
 //    @GetMapping("/token")

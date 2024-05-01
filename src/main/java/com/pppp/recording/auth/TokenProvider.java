@@ -81,6 +81,8 @@ public class TokenProvider {
         return Long.parseLong(userIdString);
     }
 
+
+
     public void expireToken(String token) {
         // 만료시간을 현재 시간으로 설정하여 토큰을 만료시킴
         Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();

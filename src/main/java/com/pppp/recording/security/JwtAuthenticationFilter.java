@@ -33,15 +33,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = parseBearerToken(request);
             log.info("Filter is running...");
-            if(token != null && !token.equalsIgnoreCase("null")) {
-                Long userId = tokenProvider.vaildateAndGetUserId(token);
-                log.info("Authenticated user ID : {}", userId);
-                AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, AuthorityUtils.NO_AUTHORITIES);
+            System.out.println(!TokenBlacklist.isBlacklisted(token));
+            if(!TokenBlacklist.isBlacklisted(token)) {
+                if (token != null && !token.equalsIgnoreCase("null")) {
+                    Long userId = tokenProvider.vaildateAndGetUserId(token);
+                    log.info("Authenticated user ID : {}", userId);
+                    AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, AuthorityUtils.NO_AUTHORITIES);
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-                securityContext.setAuthentication(authentication);
-                SecurityContextHolder.setContext(securityContext);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+                    securityContext.setAuthentication(authentication);
+                    SecurityContextHolder.setContext(securityContext);
+                }
             }
         } catch (Exception e) {
             logger.error("Could not set user authentication in security context", e);
