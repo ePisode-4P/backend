@@ -5,15 +5,18 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import com.pppp.recording.model.UserEntity;
+import com.pppp.recording.repository.UserRepository;
 import io.jsonwebtoken.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class TokenProvider {
     private static final String SECRET_KEY = "NMA8JPctFuna59f5";
-
+    private final UserRepository userRepository;
     public String createAccessToken(UserEntity userEntity) {
         Date expireDate = Date.from(Instant.now().plus(1, ChronoUnit.HOURS)); // 액세스 토큰 만료 시간
         return Jwts.builder()
@@ -75,10 +78,13 @@ public class TokenProvider {
         }
     }
 
-    public Long vaildateAndGetUserId(String token) {
+    public UserEntity vaildateAndGetUser(String token) {
         Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+//        System.out.println(claims.getSubject());
         String userIdString = claims.getSubject();
-        return Long.parseLong(userIdString);
+        Long userId = Long.parseLong(userIdString);
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
     }
 
 

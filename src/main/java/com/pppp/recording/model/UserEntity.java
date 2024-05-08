@@ -33,4 +33,7 @@ public class UserEntity {
     @Column
     private String mbti;
 
+    @Column
+    private String address;
+
 }

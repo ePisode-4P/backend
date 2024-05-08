@@ -1,6 +1,7 @@
 package com.pppp.recording.security;
 
 import com.pppp.recording.auth.TokenProvider;
+import com.pppp.recording.model.UserEntity;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,16 +30,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
 
     @Override
-    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             String token = parseBearerToken(request);
             log.info("Filter is running...");
             System.out.println(!TokenBlacklist.isBlacklisted(token));
             if(!TokenBlacklist.isBlacklisted(token)) {
                 if (token != null && !token.equalsIgnoreCase("null")) {
-                    Long userId = tokenProvider.vaildateAndGetUserId(token);
-                    log.info("Authenticated user ID : {}", userId);
-                    AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, AuthorityUtils.NO_AUTHORITIES);
+                    UserEntity user = tokenProvider.vaildateAndGetUser(token);
+                    log.info("Authenticated user ID : {}", user.getUserId());
+                    AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, AuthorityUtils.NO_AUTHORITIES);
 
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();

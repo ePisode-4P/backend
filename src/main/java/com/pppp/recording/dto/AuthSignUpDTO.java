@@ -32,6 +32,6 @@ public class AuthSignUpDTO {
     private String mbti;
 
     public UserEntity toUserEntity() {
-        return UserEntity.builder().email(email).username(username).password(password).mbti(mbti).build();
+        return UserEntity.builder().email(email).username(username).password(password).mbti(mbti).address(address).build();
     }
 }
